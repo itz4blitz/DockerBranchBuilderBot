@@ -28,7 +28,7 @@ This script automates the build and push process for multiple branches of Docker
 1. **Clone the Repository**
 
     ```bash
-    git clone https://github.com/yourusername/DockerBranchBuilderBot.git
+    git clone github.com/itz4blitz/DockerBranchBuilderBot.git
     ```
 
 2. **Configure Script**
