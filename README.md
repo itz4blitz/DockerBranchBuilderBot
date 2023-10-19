@@ -19,8 +19,9 @@ This script automates the build and push process for multiple branches of Docker
 - Docker 🐳
 - Git 📦
 - Curl 🌐
+  
+<a href="https://docker.com"><img src="https://cdn-icons-png.flaticon.com/512/919/919853.png" width="50" height="50"></a> <a href="https://git-scm.com"><img src="https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png" width="50" height="50"></a> <a href="https://curl.se/"><img src="https://curl.se/logo/curl-logo.png" width="50" height="50"></a>
 
-<a href="https://docker.com"><img src="https://www.docker.com/sites/default/files/d8/2019-07/Moby-logo.png" width="50" height="50"></a> <a href="https://git-scm.com"><img src="https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png" width="50" height="50"></a> <a href="https://curl.se/"><img src="https://curl.se/logo/curl-logo.png" width="50" height="50"></a>
 
 ## Setup 🔧
 
