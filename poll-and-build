@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Slack webhook URL
+SLACK_WEBHOOK_URL="https://hooks.slack.com/services/your/slack/webhook"
+
+# Initialize variables
+FIRST_RUN=true
+LAST_UPDATE=$(date +%s)
+USERNAME="your_username"
+GHCR_PAT="your_ghcr_pat"
+
+function send_slack_message {
+    curl -s -d "payload={\"text\": \"$1\"}" $SLACK_WEBHOOK_URL
+}
+
+function process_repo {
+    # Variables for each repo
+    REPO_PATH=$1
+    IMAGE_NAME=$2
+    ALLOWED_BRANCHES=("${!3}")
+
+    # Initial list of branches to build (for first run)
+    local summary=""
+    if [ "$FIRST_RUN" = true ] ; then
+        for branch in "${ALLOWED_BRANCHES[@]}"; do
+            summary="$summary\n$branch"
+        done
+        send_slack_message "First Run: Will build the following branches for $IMAGE_NAME: $summary"
+    fi
+
+    summary=""
+
+    # Fetch all branches and filter for allowed ones
+    cd $REPO_PATH || exit 1
+    git fetch origin
+    ALL_BRANCHES=$(git branch -r | sed 's/origin\///' | grep -E "^$(IFS="|"; echo "${ALLOWED_BRANCHES[*]}")$")
+
+    # Loop through each allowed branch
+    for branch in $ALL_BRANCHES; do
+        git checkout $branch
+        git pull origin $branch
+        docker build -t "$IMAGE_NAME:$branch-1.0.0" .
+        docker tag "$IMAGE_NAME:$branch-1.0.0" "ghcr.io/$USERNAME/$IMAGE_NAME:$branch-1.0.0"
+        echo $GHCR_PAT | docker login ghcr.io -u $USERNAME --password-stdin
+        docker push "ghcr.io/$USERNAME/$IMAGE_NAME:$branch-1.0.0"
+        summary="$summary\nBuilt and pushed: $IMAGE_NAME:$branch-1.0.0"
+    done
+
+    # Record time
+    local current_time=$(date +%s)
+
+    # Check time since last Slack message update
+    if [ $((current_time - LAST_UPDATE)) -gt 3600 ] || [ "$FIRST_RUN" = true ]; then
+        send_slack_message "Hourly Update: $summary"
+        LAST_UPDATE=$current_time
+    fi
+
+    # Switch off FIRST_RUN flag
+    FIRST_RUN=false
+}
+
+# Allowed branches for each repo
+declare -a app_branches=("branch1" "branch2" "branch3" "branch4" "feature/.*")
+
+# Main Execution
+while true; do
+    process_repo "/path/to/your/repo" "app_name" app_branches[@]
+    sleep 60
+done
